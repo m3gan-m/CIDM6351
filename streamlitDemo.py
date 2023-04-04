@@ -3,6 +3,9 @@
 # 1. install required packages in Shell:  pip install streamlit yfinance mysql-connector-python plotly
 # 2. type  streamlit run streamlit_app.py  within the Shell
 
+
+pip install -r requirements.txt
+
 # import packages needed
 from datetime import date, datetime
 import streamlit as st
