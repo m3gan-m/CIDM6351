@@ -4,7 +4,7 @@
 # 2. type  streamlit run streamlit_app.py  within the Shell
 
 get-pip.py
-pip install -r requirements.txt
+#pip install -r requirements.txt
 
 # import packages needed
 from datetime import date, datetime
