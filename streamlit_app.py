@@ -1,70 +1,67 @@
-from datetime import datetime
+# To turn this app,
+# 0. Make a copy (Fork) of this repl with your repl account
+# 1. install required packages in Shell:  pip install streamlit yfinance mysql-connector-python plotly
+# 2. type  streamlit run streamlit_app.py  within the Shell
 
+# import packages needed
+from datetime import date, datetime
 import streamlit as st
-#from vega_datasets import data
+import yfinance as yf
+import plotly.express as px
+import mysql.connector
+import pandas as pd
 
-#from utils import chart, db
+# print title
+st.title("CIDM6351 Streamlit Homework 10")
+# print plain text
+st.write(
+    "Your Name: Megan Moore")
+st.write(
+    "Your email: mmmoore2@buffs.wtamu.edu")
+st.write(
+    "___________________________________________________________"
+)
 
-COMMENT_TEMPLATE_MD = """{} - {}
-> {}"""
+# print text formatted by HTML
+#st.markdown("<h1 style='text-align:center; color:red;'> Sample Stock Price App. </h1>", unsafe_allow_html=True)
 
 
-def space(num_lines=1):
-    """Adds empty lines to the Streamlit app."""
-    for _ in range(num_lines):
-        st.write("")
+# print text in markdown
+st.markdown("## **Check Stock Information**")
 
+# a list of stock names
+stock_names = ['MSFT', 'AAPL', 'AMZN', 'GOOGL']
+# select a stock to check
+target_stock = st.multiselect("Choose at least TWO stocks to visualize. Default stocks: AAPL, NFLX", stock_names,['AAPL','MSFT'])
+#target_stock = st.selectbox('Select a stock to check', options=stock_names)
+#multitarget_stock = st.multiselect('Select a stock to check', ['MSFT','AAPL']) 
 
-st.set_page_config(layout="centered", page_icon="💬", page_title="Commenting app")
+st.markdown("## **Check Stock Price History**")
 
-# Data visualisation part
+# start date of the stock infomation, default is the first day of year 2021
+start_date = st.date_input('Start Date', datetime(2021, 1, 1))
+# end date of the stock infomation, default is date of today
+end_date = st.date_input("End Date")
 
-st.title("💬 Commenting app")
-
-source = data.stocks()
-all_symbols = source.symbol.unique()
-symbols = st.multiselect("Choose stocks to visualize", all_symbols, all_symbols[:3])
-
-space(1)
-
-source = source[source.symbol.isin(symbols)]
-chart = chart.get_chart(source)
-st.altair_chart(chart, use_container_width=True)
-
-space(2)
-
-# Comments part
-
-conn = db.connect()
-comments = db.collect(conn)
-
-with st.expander("💬 Open comments"):
-
-    # Show comments
-
-    st.write("**Comments:**")
-
-    for index, entry in enumerate(comments.itertuples()):
-        st.markdown(COMMENT_TEMPLATE_MD.format(entry.name, entry.date, entry.comment))
-
-        is_last = index == len(comments) - 1
-        is_new = "just_posted" in st.session_state and is_last
-        if is_new:
-            st.success("☝️ Your comment was successfully posted.")
-
-    space(2)
-
-    # Insert comment
-
-    st.write("**Add your own comment:**")
-    form = st.form("comment")
-    name = form.text_input("Name")
-    comment = form.text_area("Comment")
-    submit = form.form_submit_button("Add comment")
-
-    if submit:
-        date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        db.insert(conn, [[name, comment, date]])
-        if "just_posted" not in st.session_state:
-            st.session_state["just_posted"] = True
-        st.experimental_rerun()
+# get today date
+today = date.today()
+if st.button('Submit'):
+    # check valid date
+    if start_date > today or end_date > today:
+        st.write("## **Please select a valid date period. **")
+    else:
+        # download the stock data based on stock name, start/end date
+        data = yf.download(tickers=target_stock,start=start_date,end=end_date)
+        # show a progress bar
+        with st.spinner(text='In progress'):
+            high = data['High']
+            fig = px.line(high,
+                          x=high.index,
+                          y=list(high.columns),
+                          title=f"High Stock Price:{start_date} to {end_date}",
+                          labels={
+                              "value": "Stock Price ($)",
+                              "variable": "Stock"
+                          })
+            st.write(fig)
+            st.success('Done')
