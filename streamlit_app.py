@@ -1,3 +1,4 @@
+
 # To turn this app,
 # 0. Make a copy (Fork) of this repl with your repl account
 # 1. install required packages in Shell:  pip install streamlit yfinance mysql-connector-python plotly
@@ -65,3 +66,4 @@ if st.button('Submit'):
                           })
             st.write(fig)
             st.success('Done')
+#----
